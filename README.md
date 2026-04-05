@@ -30,7 +30,7 @@ Theorem 4 establishes that carry measurements determine the superposition variab
 
 ## Paper
 
-- [`Carry_Reuse _v4_2.pdf`](Carry_Reuse%20_v4_2.pdf)
+- [`Carry_Reuse_v4_2_Tidoshi.pdf`](Carry_Reuse_v4_2_Tidoshi.pdf)
 
 ## Scripts
 
