@@ -1,38 +1,45 @@
-# Carry-Reuse: Breaking Elliptic Curve Cryptography with Fewer Qubits
+# Carry-Reuse in Quantum ECDLP Circuits
 
-**Author:** Tidoshi  
-**Contact:** satoshirising420@gmail.com  
-**Version:** 4.2 — 520-Qubit Single-Run Architecture
+Research on carry-reuse optimization for quantum circuits solving the elliptic curve discrete logarithm problem (ECDLP).
 
-## Overview
+## Papers
 
-This repository contains the paper and all simulation code supporting the claims in "Carry-Reuse: Breaking Elliptic Curve Cryptography with Fewer Qubits." The paper introduces carry-reuse, a quantum circuit architecture that replaces standard uncomputation with mid-circuit measurement and reset, reducing the logical qubit count for ECDLP from 1,193 to 780 (unconditional, all curves) or 520 (conditional, Montgomery-compatible curves).
+### Carry Injectivity Creates a Depth–Superposition Trade-Off in Quantum ECDLP Circuits
+**Author:** Brad Merrill | [`carry_injectivity_SUBMISSION.pdf`](carry_injectivity_SUBMISSION.pdf)
 
-## Abstract
+Formal submission proving that the extended carry vector (multiplication quotients + modular reduction flags) from EC scalar multiplication is **injective**: distinct scalars produce distinct carry sequences. Verified across **four arithmetic models** — affine, Jacobian projective, Montgomery ladder, and fixed-window — on 142 curve–model configurations (b = 4–15) with zero full-injectivity exceptions.
 
-We present **carry-reuse**, a modified quantum circuit architecture for the elliptic curve discrete logarithm problem (ECDLP). Standard Shor implementations uncompute intermediate carry bits from modular arithmetic, roughly doubling gate cost and preventing ancilla reuse. We measure carry registers mid-circuit instead, freeing workspace qubits via measurement-based reset.
+**Key findings:**
+- **Carry Collision Characterization (Theorem 2):** Collisions occur iff (a) k is even and (b) all carries from [k]G + G are zero. At most ≤ 2 collisions per curve, characterized by y-coordinate matching.
+- **Extended Carry Injectivity (Theorem 5):** Cᵉ(x) is injective on {2, …, n−1} with unique collision {0, 1}. Verified on 35 curves including all 13 simplified-model failures. Zero exceptions.
+- **Depth–Superposition Trade-Off (Proposition 9):** Measuring all carries collapses the superposition to a single basis state, destroying QFT periodicity. Depth halving and QFT recovery are mutually exclusive.
+- **Resolution via Partial Measurement (§5.1):** Measuring fraction f ≈ 1 − 1/b of carries preserves W ≥ 2 equivalence classes. At b = 256: f* = 99.6%, achieving **1.94× depth reduction** (~31M vs ~60M Toffoli) while maintaining Pr[good] ≈ 0.78–0.82 ≫ 4/π².
+- **Scaling Law (Proposition 11):** Each informative carry entry contributes exactly 1 bit of conditional entropy. The critical fraction f* ≥ 1 − 1/b, so the trade-off vanishes at cryptographic scale.
 
-### Key Results
+| Configuration | Qubits | Toffoli | Runtime (1 MHz) | Speedup |
+|---|---|---|---|---|
+| Baseline [Chevignard et al.] | 1,193 | ~60M | ~60s | 1.00× |
+| + carry-reuse f=90% | ~1,050 | ~33M | ~33s | 1.82× |
+| + carry-reuse f=85% | ~1,080 | ~35M | ~35s | 1.71× |
 
-1. **Information Content** — The carry function in a single modular multiplication encodes *b − 1.44* bits of its *b*-bit operand (Theorem 1, verified with zero error across 500 test cases).
-2. **QFT Preservation** — Carry measurement preserves periodicity detection with per-run success probability ≥ 4/π² ≈ 0.405, independent of bit width (Theorem 2).
-3. **Deterministic Structure** — Carry bits in the full ECDLP oracle are deterministic functions of the superposition variable with staircase structure (Theorem 3).
-4. **Compound Carry Uniqueness** — The compound carry vector determines *x* uniquely for all *x* ≥ 2, with P(collision) ≤ 2⁻²⁵⁶, verified on 180 prime-order curves with zero exceptions (Theorem 4).
-5. **Simulation Validation** — Simulation at b = 4–8 confirms 95–100% QFT quality under carry measurement.
+### Carry-Reuse: Breaking Elliptic Curve Cryptography with Fewer Qubits
+**Author:** Tidoshi | **Version 4.2** | [`Carry_Reuse_v4_2_Tidoshi.pdf`](Carry_Reuse_v4_2_Tidoshi.pdf)
 
-### Architectural Result (Unconditional)
+The original carry-reuse architecture paper proposing measurement-based ancilla reset to reduce logical qubit counts for ECDLP.
 
-Using Beauregard in-place modular arithmetic with measurement-based ancilla reset and a Montgomery ladder structure, the circuit requires **520 logical qubits** for 256-bit Montgomery-compatible curves — a **2.29× reduction** from the best published 1,193-qubit implementation. For non-Montgomery curves, a **780-qubit** fallback architecture provides a 1.53× reduction.
+**Key results:**
+- **520 logical qubits** for 256-bit Montgomery curves (2.29× reduction from 1,193) using Beauregard in-place arithmetic + Montgomery ladder
+- **780-qubit fallback** for non-Montgomery curves (1.53× reduction)
+- **Single-run key recovery:** 280/280 = 100% simulation success across 14 prime-order curves
+- **Carry information content:** b − 1.44 bits per operand (Theorem 1)
+- **QFT preservation:** Pr[success] ≥ 4/π² ≈ 0.405 (Theorem 2)
+- **Compound carry uniqueness:** P(collision) ≤ 2⁻²⁵⁶ on 180 curves (Theorem 4)
+- **Error detection:** 1,032:1 redundancy ratio, 100% detection of corrupted runs (~10× speedup at 10% error rate)
+- **Physical qubits:** ~15,600 under QLDPC 30:1 (projected)
 
-### Single-Run Recovery (Near-Unconditional)
+## Simulation Scripts
 
-Theorem 4 establishes that carry measurements determine the superposition variable k₀ uniquely. With |S| = 1 after carry collapse, the semiclassical QFT extracts the phase d·k₀/n exactly, enabling high-probability single-run key recovery. Simulation confirms **100% single-run success** across 14 prime-order curves (280/280 trials). Under QLDPC error correction at 30:1 ratio (projected), this maps to **~15,600 physical qubits**.
-
-## Paper
-
-- [`Carry_Reuse_v4_2_Tidoshi.pdf`](Carry_Reuse_v4_2_Tidoshi.pdf)
-
-## Scripts
+Scripts validating claims from the Tidoshi v4.2 paper:
 
 | Script | Validates | Runtime |
 |--------|-----------|---------|
@@ -45,16 +52,16 @@ Theorem 4 establishes that carry measurements determine the superposition variab
 ## Quick Start
 
 ```bash
-# Verify Theorem 4: compound carry uniqueness (180 curves, 0 exceptions)
+# Verify compound carry uniqueness (180 curves, 0 exceptions)
 python3 compound_carry_uniqueness.py --max-prime 4000
 
-# Measure per-step carry detection rate (replaces hand-wavy 7/8 bound)
+# Per-step carry detection rate
 python3 per_step_carry_analysis.py
 
 # End-to-end single-run key recovery (280/280 success)
 python3 single_run_recovery.py
 
-# Verify Theorem 1: carry information content
+# Carry information content verification
 python3 carry_information_content.py
 
 # Full QFT quality simulation at b = 4–8
@@ -68,22 +75,20 @@ python3 qft_quality_simulation.py
 
 ## Simulation Results
 
-- **Theorem 4:** Compound carry vector produces exactly n−1 equivalence classes on 180/180 tested curves (zero exceptions)
-- **Lemma 2:** Per-step carry detection rate = 0.904 (≥ 7/8 = 0.875, confirmed). Persistence after first detection = 1.000
-- **Single-run:** 280/280 = 100% success across 14 prime-order curves
-- **Theorem 1:** Zero discrepancy between analytical formula and exact enumeration across 500 test cases per bit width
-- **Theorem 2:** QFT quality ratio 0.947–1.061 with no degradation trend
-
-## Keywords
-
-Quantum computing, elliptic curve cryptography, ECDLP, Shor's algorithm, carry-reuse, measurement-based uncomputation, qubit optimization, Beauregard arithmetic, Montgomery ladder, QLDPC codes, Dirichlet kernel
+- **Theorem 4:** n−1 equivalence classes on 180/180 tested curves (zero exceptions)
+- **Lemma 2:** Per-step detection rate = 0.904 (≥ 0.875 confirmed). Persistence = 1.000
+- **Single-run:** 280/280 = 100% across 14 prime-order curves
+- **Theorem 1:** Zero discrepancy across 500 test cases per bit width
+- **Theorem 2:** QFT quality ratio 0.947–1.061, no degradation trend
 
 ## Citation
 
 ```
+Brad Merrill (2026). "Carry Injectivity Creates a Depth–Superposition
+Trade-Off in Quantum ECDLP Circuits."
+
 Tidoshi (2026). "Carry-Reuse: Breaking Elliptic Curve Cryptography
-with Fewer Qubits." Version 4.2.
-Contact: satoshirising420@gmail.com
+with Fewer Qubits." Version 4.2. Contact: satoshirising420@gmail.com
 ```
 
 ## License
